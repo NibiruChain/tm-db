@@ -66,6 +66,25 @@ func NewRocksDBWithOptions(name string, dir string, opts *gorocksdb.Options) (*R
 	return database, nil
 }
 
+func NewRocksDBReadonly(name string, dir string, opts *gorocksdb.Options) (*RocksDB, error) {
+	dbPath := filepath.Join(dir, name+".db")
+	db, err := gorocksdb.OpenDbForReadOnly(opts, dbPath, false)
+	if err != nil {
+		return nil, err
+	}
+	ro := gorocksdb.NewDefaultReadOptions()
+	wo := gorocksdb.NewDefaultWriteOptions()
+	woSync := gorocksdb.NewDefaultWriteOptions()
+	woSync.SetSync(true)
+	database := &RocksDB{
+		db:     db,
+		ro:     ro,
+		wo:     wo,
+		woSync: woSync,
+	}
+	return database, nil
+}
+
 // Get implements DB.
 func (db *RocksDB) Get(key []byte) ([]byte, error) {
 	if len(key) == 0 {
